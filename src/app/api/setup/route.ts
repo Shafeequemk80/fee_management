@@ -14,10 +14,10 @@ export async function GET() {
       return NextResponse.json({ message: " user already exists" }, { status: 400 });
     }
 
-    const hashedPassword = await bcrypt.hash("admin123", 10);
+    const hashedPassword = await bcrypt.hash("Cholayil@123", 10);
 
     const newAdmin = await User.create({
-      username: "admin",
+      username: "Chola123",
       password: hashedPassword,
       role: "admin",
     });

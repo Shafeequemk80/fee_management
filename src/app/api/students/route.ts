@@ -10,10 +10,10 @@ import { z } from "zod";
 const studentSchema = z.object({
   admissionNumber: z.string().min(1, "Admission number is required"),
   name: z.string().min(2, "Name must be at least 2 characters"),
+  dob: z.string().min(1, "Date of birth is required"),
   classId: z.string().min(1, "Class is required"),
   parentName: z.string().min(2, "Parent name is required"),
   phone: z.string().min(10, "Valid WhatsApp number is required"),
-  customMonthlyFee: z.number().optional(),
   status: z.enum(["active", "inactive"]).default("active"),
 });
 
@@ -67,8 +67,10 @@ export async function POST(req: Request) {
 
     const newStudent = await Student.create(validatedData);
 
-    // Auto-create user account for student
-    const defaultPassword = `${validatedData.admissionNumber}`;
+    // Format YYYY-MM-DD to DD-MM-YYYY for password
+    const [year, month, day] = validatedData.dob.split('-');
+    const defaultPassword = `${day}-${month}-${year}`;
+    console.log(defaultPassword);
     const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
     await User.create({
@@ -81,7 +83,7 @@ export async function POST(req: Request) {
     return NextResponse.json(newStudent, { status: 201 });
   } catch (error: any) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation error", details: error.errors }, { status: 400 });
+      return NextResponse.json({ error: "Validation error", details: error.message }, { status: 400 });
     }
     return NextResponse.json({ error: "Failed to create student" }, { status: 500 });
   }
@@ -105,9 +107,9 @@ export async function PUT(req: Request) {
     const updatedStudent = await Student.findByIdAndUpdate(id, validatedData, { new: true });
 
     return NextResponse.json(updatedStudent);
-  } catch (error: any) {
+  } catch (error:any) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Validation error", details: error.errors }, { status: 400 });
+      return NextResponse.json({ error: "Validation error", details: error.cause }, { status: 400 });
     }
     return NextResponse.json({ error: "Failed to update student" }, { status: 500 });
   }

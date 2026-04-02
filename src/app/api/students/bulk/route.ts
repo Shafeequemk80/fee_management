@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     for (let i = 0; i < students.length; i++) {
       const row = students[i];
       try {
-        if (!row.admissionNumber || !row.name || !row.classId || !row.parentName || !row.phone) {
+        if (!row.admissionNumber || !row.name || !row.dob || !row.classId || !row.parentName || !row.phone) {
           throw new Error("Missing required fields");
         }
 
@@ -38,13 +38,16 @@ export async function POST(req: Request) {
         const newStudent = await Student.create({
           admissionNumber: row.admissionNumber,
           name: row.name,
+          dob: row.dob,
           classId: row.classId,
           parentName: row.parentName,
           phone: row.phone,
           status: "active",
         });
 
-        const defaultPassword = `${row.admissionNumber}`;
+        // Format YYYY-MM-DD to DD-MM-YYYY for password, assuming row.dob is YYYY-MM-DD
+        const [year, month, day] = row.dob.includes('-') ? row.dob.split('-') : [row.dob, "", ""];
+        const defaultPassword = day && month && year ? `${day}-${month}-${year}` : `${row.dob}`;
         const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
         await User.create({

@@ -17,11 +17,11 @@ import { Search, Plus, Upload, MoreHorizontal, Pencil, Trash } from "lucide-reac
 const studentSchema = z.object({
   admissionNumber: z.string().min(1, "Admission number is required"),
   name: z.string().min(2, "Name must be at least 2 characters"),
+  dob: z.string().min(1, "Date of birth is required"),
   classId: z.string().min(1, "Class is required"),
   parentName: z.string().min(2, "Parent name is required"),
   phone: z.string().min(10, "Valid WhatsApp number is required"),
-  customMonthlyFee: z.coerce.number().optional().or(z.literal("")),
-  status: z.enum(["active", "inactive"]).default("active"),
+  status: z.enum(["active", "inactive"]),
 });
 
 type StudentFormValues = z.infer<typeof studentSchema>;
@@ -40,11 +40,11 @@ export default function StudentsPage() {
     defaultValues: {
       admissionNumber: "",
       name: "",
+      dob: "",
       classId: "",
       parentName: "",
       phone: "",
       status: "active",
-      customMonthlyFee: "",
     },
   });
 
@@ -76,15 +76,10 @@ export default function StudentsPage() {
 
   async function onSubmit(data: StudentFormValues) {
     try {
-      const parsedData = {
-        ...data,
-        customMonthlyFee: data.customMonthlyFee === "" ? undefined : Number(data.customMonthlyFee),
-      };
-
       const res = await fetch("/api/students", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(parsedData),
+        body: JSON.stringify(data),
       });
 
       const responseData = await res.json();
@@ -159,13 +154,21 @@ export default function StudentsPage() {
                       </FormItem>
                     )} />
                   </div>
-                  <FormField control={form.control} name="name" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Student Name</FormLabel>
-                      <FormControl><Input placeholder="Full Name" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
+                    <FormField control={form.control} name="name" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Student Name</FormLabel>
+                        <FormControl><Input placeholder="Full Name" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="dob" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Date of Birth</FormLabel>
+                        <FormControl><Input type="date" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  
                   <FormField control={form.control} name="parentName" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Parent Name</FormLabel>
@@ -177,13 +180,6 @@ export default function StudentsPage() {
                     <FormItem>
                       <FormLabel>WhatsApp Phone (+code)</FormLabel>
                       <FormControl><Input placeholder="919876543210" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                  <FormField control={form.control} name="customMonthlyFee" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Custom Fee (Optional)</FormLabel>
-                      <FormControl><Input type="number" placeholder="Override class fee" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
