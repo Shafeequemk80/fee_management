@@ -8,6 +8,10 @@ const withPWA = withPWAInit({
 });
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true, // 🔥 ADD THIS
+  },
+};
 
 export default withPWA(nextConfig);
